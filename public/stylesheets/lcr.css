@@ -1,0 +1,73 @@
+
+.tab {
+  margin: 2px;
+}
+
+.tab > .header {
+  background: #A0A0A0;
+  color: #FFFFFF;
+  width: auto;
+  display: block;
+  margin: 4px 0 0 0;
+  padding: 4px;
+  outline: 1px solid #A0A0A0;
+  position: relative;
+}
+
+.tab > label {
+  background: #A0A0A0;
+  color: #FFFFFF;
+  width: auto;
+  display: block;
+  margin: 4px 0 0 0;
+  padding: 4px;
+  outline: 1px solid #A0A0A0;
+}
+
+.tab > .header .buttons {
+  position: absolute;
+  right: 4px;
+  display: inline-block;
+}
+
+ul.list {
+  list-style: none;
+  margin: 0 0 4px 0;
+  padding: 4px;
+  outline: 1px solid #A0A0A0;
+  height: 150px;
+  overflow-y: auto;
+}
+
+ul.list li {
+  margin: 1px;
+  padding: 1px;
+  cursor: pointer;
+}
+
+ul.list li.selected {
+  background: #D0D0D0;
+}
+
+ul.list li span.label, ul.list li label {
+  display: inline-block;
+  text-align: left;
+  padding: 0;
+  margin: 0 1em 0 0;
+}
+
+
+
+ul.list li span.count {
+  float: right;
+}
+
+ul.list li span.details {
+  float: right;
+}
+
+select {
+  width: 20em;
+}
+
+

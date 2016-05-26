@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Widget Test</title>
+  </head>
+  <body>
+    <div>
+    <h2>Widget Test</h2>
+    <label for="widgets">Widgets</label>
+    <select id="widgets" name="widgets"></select>
+    <label for="types">Chart Type</label>
+    <select id="types" name="types"></select>
+    <div id="dashboard"/>
+    <script src="/javascripts/force.js"></script>
+    <script src="/javascripts/test.js"></script>
+    <script>
+      var config = {
+          appId: '<%= appId %>',
+          useProxy: true
+      };
+
+      wave.init(config);
+
+      wave.login(function(res, err) {
+        if (err) {
+          console.warn('login error: ', err);
+        } else {
+          wave.getDashboard({id: '0FKB00000000cAYOAY'}, function(dashboard, e) {
+            if (err) {
+              console.error('wave.getDashboard error: ', err);
+            } else {
+              dashboard.createComponent({
+                locator: { id: 'dashboard', width: '700px', height: '500px' }
+              },
+              function(res, err) {
+                if (err) {
+                  console.error('dashboard.createComponent error: ', err);
+                } else {
+
+                }
+              });
+
+
+              var select = document.getElementById('widgets');
+              var option = null;
+              option = document.createElement('option');
+              option.setAttribute('value', '');
+              option.setAttribute('selected', 'selected');
+              option.innerHTML = 'Please choose...';
+              select.appendChild(option);
+              select.onchange = function(e) {
+                var name = e.target.value;
+                var widget = dashboard.getWidget(name);
+                var typeSelect = document.getElementById('types');
+                typeSelect.innerHTML = '';
+                typeSelect.onchange = function(e) {
+                  var type = e.target.value;
+                  dashboard.setChartType(name, type, function(res, err) {
+                    console.warn('setChartType returned: ', res, err);
+                  });
+                }
+                var type = widget.getChartType();
+                widget.getChartTypes(function(types, err) {
+                  for (var i = 0; i < types.length; i++) {
+                    option = document.createElement('option');
+                    option.setAttribute('value', types[i]);
+                    if (type === types[i]) {
+                      option.setAttribute('selected', 'selected');
+                    }
+                    option.innerHTML = types[i];
+                    typeSelect.appendChild(option);
+                  }
+                });
+
+              }
+              dashboard.getWidgets(function(widgets, err) {
+                if (err) {
+                  console.error('dashboard.getWidgets error: ', err);                    
+                } else {
+                  var names = [];
+                  for (var key in widgets) {
+                    names.push(key);
+                  }
+                  names = names.sort();
+                  for (var i = 0; i < names.length; i++) {
+                    option = document.createElement('option');
+                    option.setAttribute('value', names[i]);
+                    option.innerHTML = names[i];
+                    select.appendChild(option);
+                  }
+                }
+              });
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

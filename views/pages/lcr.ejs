@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LCR</title>
+    <!--
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bootstrap.min.css" />
+    -->
+    <link rel="stylesheet" type="text/css" href="/stylesheets/dialog-polyfill.css" />
+    <link rel="stylesheet" type="text/css" href="/stylesheets/lcr.css" />
+  </head>
+  <body>
+    <div style="width: 100%; display: inline-block; vertical-align: top; background: #A0A0C0;">
+      <div style="float:left">
+        <h2>LCR</h2>
+      </div>
+      <div style="float: right">
+        <div style="float: left;">
+          Username: <input id="username" type="text" value="skipsauls@gmail.com"/><br/>
+          Password: <input id="password" type="password" value="test1234"/><br/>
+          <button onclick="login();">Login</button>
+        </div>
+        <div style="float: left;">
+          Username: <input id="username0" type="text" value="ssauls@salesforce.com"/><br/>
+          Password: <input id="password0" type="password" value="test1234"/><br/>
+          <button onclick="login(0);">Login</button>
+        </div>
+        <div style="float: left;">
+          <button onclick="logout();">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 30%; display: inline-block; vertical-align: top;">
+
+      <div>
+        <!--
+        <label for="room_select">Room</label>
+        <select id="rooms" onchange="selectRoom(this);"></select>
+        <button onclick="enterRoom();">Enter Room</button>
+        -->
+        <div class="tab">
+          <div class="header">
+            <label>Rooms</label>
+            <div class="buttons">
+              <button onclick="createRoom();">+</button>
+              <button onclick="destroyRoom();">-</button>
+            </div>
+          </div>
+          <ul id="rooms" class="list"></ul>
+        </div>
+        <div class="tab">
+          <label>Players</label>
+          <ul id="players" class="list"></ul>
+        </div>
+        <div class="tab">
+          <div class="header">
+            <label>Games</label>
+            <div class="buttons">
+              <button onclick="createGame();">+</button>
+              <button onclick="destroyGame();">-</button>
+            </div>
+          </div>
+          <ul id="games" class="list"></ul>
+        </div>
+      </div>
+    </div>
+    <div style="width: 60%; display: inline-block; vertical-align: top;">
+      <div class="tab">
+        <label>Game Details</label>
+        <div>
+          <button onclick="joinGame();">Join Game</button>
+          <button onclick="leaveGame();">Leave Game</button>
+          <button onclick="startGame();">Start Game</button>
+          <button onclick="pauseGame();">Pause Game</button>
+          <button onclick="restartGame();">Restart Game</button>
+          <button onclick="endGame();">End Game</button>
+          <button onclick="destroyGame();">Destroy Game</button>
+        <ul id="game_details" class="list"></ul>
+      </div>
+      <div class="tab">
+        <label>Game Players</label>
+        <ul id="game_players" class="list"></ul>
+      </div>
+    </div>
+    <hr/>
+
+    <dialog id="dialog">
+      <div class="titlebar">
+        <span class="title"></span>
+        <button class="close" onclick="closeDialog(event, this);">X</button>
+      </div>
+      <div class="body">
+      </div>
+      <div class="buttons">
+      <button class="cancel" onclick="closeDialog(event, this);">Cancel</button>
+      <button class="okay" onclick="submitDialog(event, this);">Okay</button>
+      </div>
+    </dialog>
+
+    <div style="display: none;" id="dialog_forms">
+
+      <div id="form1">
+        <h1>Form</h1>
+        <input type="text" name="test"/>
+        <select name="bar">
+          <option value="123">abc</option>
+          <option value="456">def</option>
+        </select>
+        <button onclick="alert('adadsf');">Foo</button>
+      </div>
+
+      <div id="new_room">
+        <label>Name:</label>
+        <input type="text" name="name" placeholder="New Room"/>
+      </div>
+
+      <div id="new_game">
+        <label>Name:</label>
+        <input type="text" name="name" placeholder="New Game"/>
+      </div>
+
+    </div>
+
+
+
+    <script src="/javascripts/socket.io.js"></script>
+    <script src="/javascripts/dialog-polyfill.js"></script>
+
+    <script src="/javascripts/lcr_util.js"></script>
+    <script src="/javascripts/lcr_ui.js"></script>
+    <script src="/javascripts/lcr.js"></script>
+    <script>
+      function testDialog() {
+        var form = document.getElementById('form1');
+        showDialog('Test', form, false, function(obj, err) {
+          console.warn('dialog returned: ', obj, err);
+        });
+      }
+
+
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test</title>
+  </head>
+  <body>
+    <div>
+    <h2>Test</h2>
+    <input type="text" name="name" id="name" value="" placeholder="Name"/>
+    <input type="text" name="label" id="label" value="" placeholder="Label"/>
+    <button onclick="createDashboard();">Create Dashboard</button>
+    <br/>
+    <button onclick="storeDashboard();">Store Dashboard</button>
+    <button onclick="addStep();">Add Step</button>
+    <button onclick="addWidget();">Add Widget</button>
+    <br/>
+    <button onclick="loadDashboard();">Load Dashboard</button>
+    <script src="/javascripts/force.js"></script>
+    <script src="/javascripts/test.js"></script>
+    <script>
+      var config = {
+          appId: '<%= appId %>',
+          useProxy: true
+      };
+
+      wave.init(config);
+
+      wave.login(function(res, err) {
+        if (err) {
+          console.warn('login error: ', err);
+        } else {
+          console.warn('ready');
+        }
+      });
+
+      function createDashboard(evt) {
+        var name = document.getElementById('name').value;
+        var label = document.getElementById('label').value;
+        wave.createDashboard({name: name, label: label}, function(dashboard, err) {
+          console.warn(dashboard, err);
+          if (err) {
+            console.error(err);
+          } else {
+            window.myDashboard = dashboard;
+            console.warn('myDashboard: ', myDashboard);
+          }
+        });
+      }
+      function loadDashboard(evt) {
+          wave.getDashboard({id: '0FKB00000000e5mOAA'}, function(dashboard, err) {
+            console.warn(dashboard, err);
+            window.myDashboard = dashboard;
+            console.warn('myDashboard: ', myDashboard);
+          });
+      }
+
+      function storeDashboard(evt) {
+        myDashboard.store(function(res, err) {
+          console.warn('store returned: ', res, err);
+        });
+      }
+
+      function addStep(evt) {
+        console.warn('addStep');
+        var name = 'Id_1';
+        var properties = steps[name];
+        myDashboard.addStep(name, properties, function(res, err) {
+          console.warn('addStep returned: ', res, err);
+        });
+      }
+
+      function addWidget(evt) {
+        console.warn('addWidget');
+        var name = 'chart_1';
+        var widget = widgets[name];
+        var type = widget.type;
+        var parameters = widget.parameters;
+        var position = widget.position;
+        var layout = gridLayouts[0].pages[0].widgets[0];
+        myDashboard.addWidget(name, type, parameters, position, layout, function(res, err) {
+          console.warn('addWidget returned: ', res, err);
+        });
+      }
+      
+      var steps = {
+        "USER_ID_ENTRY_POINT_2": {
+          "datasets": [
+            {
+              "id": "0FbB00000000LxcKAE",
+              "label": "ApexExecution",
+              "name": "ApexExecution",
+              "url": "/services/data/v36.0/wave/datasets/0FbB00000000LxcKAE"
+            }
+          ],
+          "isFacet": true,
+          "isGlobal": false,
+          "query": {
+            "query": "{\"measures\":[[\"count\",\"*\"]],\"groups\":[\"USER_ID\",\"ENTRY_POINT\"]}",
+            "version": -1
+          },
+          "selectMode": "single",
+          "type": "aggregate",
+          "useGlobal": true,
+          "visualizationParameters": {
+            "visualizationType": "hbar"
+          }
+        },
+        "Id_1": {
+          "datasets": [
+            {
+              "id": "0FbB00000000LnBKAU",
+              "name": "opportunity"
+            }
+          ],
+          "isFacet": true,
+          "isGlobal": false,
+          "query": {
+            "query": "{\"measures\":[[\"max\",\"Amount\"]],\"groups\":[\"Id\"]}",
+            "version": -1
+          },
+          "selectMode": "single",
+          "type": "aggregate",
+          "useGlobal": true,
+          "visualizationParameters": {
+            "visualizationType": "hbar"
+          }
+        }
+      };
+
+      var widgets = {
+        "chart_2": {
+          "parameters": {
+            "step": "USER_ID_ENTRY_POINT_2",
+          },
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "type": "chart"
+        },
+        "chart_1": {
+          "parameters": {
+            "legend": false,
+            "step": "Id_1",
+            "visualizationType": "hbar"
+          },
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "type": "chart",
+          "layout": {
+            "colspan": 6,
+            "column": 6,
+            "name": "chart_1",
+            "row": 0,
+            "rowspan": 10,
+            "widgetStyle": {
+              "borderEdges": []
+            }
+          }
+        }
+      };
+
+      var gridLayouts = [
+        {
+          "name": "desktop",
+          "pages": [
+            {
+              "widgets": [
+                {
+                  "colspan": 6,
+                  "column": 6,
+                  "name": "chart_1",
+                  "row": 0,
+                  "rowspan": 10,
+                  "widgetStyle": {
+                    "borderEdges": []
+                  }
+                },
+                {
+                  "colspan": 6,
+                  "column": 0,
+                  "name": "chart_2",
+                  "row": 0,
+                  "rowspan": 10,
+                  "widgetStyle": {
+                    "borderEdges": []
+                  }
+                }
+              ]
+            }
+          ],
+          "selectors": [],
+          "version": 1,
+          "widgetStyle": {
+            "borderEdges": []
+          }
+        }
+      ];
+
+    </script>
+  </body>
+</html>

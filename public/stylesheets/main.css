@@ -1,0 +1,195 @@
+.jumbotron {
+  background: #2ec2ba;
+  color: white;
+  padding-bottom: 10px;
+}
+
+.jumbotron .btn-primary {
+  background: #845ac7;
+  border-color: #845ac7;
+}
+
+.jumbotron .btn-primary:hover {
+    background: #7646c1;
+}
+
+.jumbotron p {
+  color: #d9ccee;
+  max-width: 75%;
+  margin: 1em auto 2em;
+}
+
+.not_container {
+  margin: 0;
+  padding: 0 5px;
+}
+
+.not_container .row {
+  margin: 5px 0;
+}
+
+.navbar + .jumbotron {
+  margin-top: -20px; 
+}
+
+.jumbotron .lang-logo {
+  display: block;
+  background: #B01302;
+  border-radius: 50%;
+  overflow: hidden;
+  width: 40px;
+  height: 40px;
+  margin: auto;
+  border: 2px solid white;
+}
+.jumbotron .lang-logo img {
+  max-width: 100%; 
+}
+
+.panel-heading h4 a:after {
+    font-family:'Glyphicons Halflings';
+    content:"\e114";
+    float: right;
+    color: grey;
+}
+
+.panel-heading h4 a.collapsed:after {
+    content:"\e080";
+}
+
+#treepanel .panel-body {
+  padding: 0;
+}
+
+#treeview {
+  height: 500px;
+  overflow: auto;
+}
+
+#treeview.treeview .list-group {
+  padding: 0;
+  margin: 0;
+} 
+
+#treeview.treeview .list-group-item {
+  border: none;
+  white-space: nowrap;
+  line-height: 1em;
+  padding: 4px 0;
+  margin: 0;  
+}
+
+#treeview.treeview span.indent {
+    margin-left: 4px;
+    margin-right: 2px;
+}
+
+img.preview {
+    margin: 2px;
+    padding: 4px;
+    border: 1px solid #A0A0A0;
+    width: 128px;
+    max-height: 128px;
+}
+
+#api ul.api {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#api ul.api li {
+
+}
+
+#api ul.api li span {
+  display: inline-block;
+  font-weight: normal;
+  margin: 2px;
+}
+
+#api ul.api li span.heading {
+  font-weight: bold;
+  border-bottom: 1px solid #A0A0A0;
+}
+
+#api ul.api li span.name {
+  width: 25%;
+}
+
+#api ul.api li span.params {
+  width: 70%;
+}
+
+.tab-content {
+  height: 700px;
+}
+
+.wave-embedded-frame {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  margin: 5px 0;
+  padding: 0;
+  border: 0 none;
+  outline: 0 none;
+}
+
+#tryit #params {
+
+}
+
+#tryit #params div {
+  margin-top: 4px;
+}
+
+#tryit #params div label {
+  width: 30%;
+  padding-left: 10px;
+  vertical-align: top;
+}
+
+#tryit #params div input {
+  width: 70%;
+}
+
+#tryit #params div textarea {
+  width: 70%;
+  height: 5em;
+}
+
+#tryit #console {
+  margin: 4px 0px;
+  padding: 2px;
+  outline: 1px solid #A0A0A0;
+  font-family: lucida console,consolas,sans-serif,monospace;
+  white-space: nowrap;
+  overflow: auto;
+  height: 10em;
+}
+
+#tryit #console ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#tryit #console ul li {
+
+}
+
+#tryit #console ul li span {
+  width: 100%;
+}
+
+#tryit #console li span.number {
+  color: #0000FF;
+}
+
+#tryit console li span.function  span {
+  color: #FF00FF;
+}
+
+#tryit #console ul li span.function span {
+  color: #AA00AA;
+}

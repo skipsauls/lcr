@@ -1,0 +1,369 @@
+<html>
+    <head>
+        <title>Wave SDK POC</title>
+        <style>
+        .log {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #FAFAFA;
+            outline: 1px solid #A0A0A0;
+            overflow: auto;
+            height: 3em;
+            line-height: 1em;
+            padding: 2px;
+            margin: 0;
+            list-style: none;
+        }
+        div.section {
+            vertical-align: top;
+            padding: 0;
+            margin: 0;
+            display: inline-block;
+            background: #FAFAFA;
+            min-height: 400px;
+            outline: 1px solid #A0A0A0;
+        }
+        div.section.left {
+            width: 25%;
+        }
+        div.section.middle {
+            width: 25%;
+        }
+        div.section.right {
+            width: 48%;
+        }
+        table {}
+        table tr {
+
+        }
+        table tr td {
+            border: 1px solid #A0A0A0;
+        }
+        ul.list {
+            list-style: none;
+            padding: 0;
+            margin: 4px;
+            display: inline-block;
+            vertical-align: top;
+            outline: 1px solid #A0A0A0;
+            width: 200px;
+            height: 400px;
+            overflow: auto;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        div.section.left ul.list {
+            margin: 0;
+            width: 100%;
+        }
+        ul.list li > * {
+            line-height 1em;
+            padding: 2px 0;
+            margin: 0;
+        }
+        ul.list li:hover {
+            background: #D0F0FF;
+        }
+        ul.list li > h3 {
+            padding: 2px;
+            background: #C0C0C0;
+        }
+        .json {
+            border: none;
+            background: #FFFFFF;
+            height: 400px;
+            overflow: auto;
+            white-space: no-wrap;
+        }
+
+        .json pre code {
+            font-family: "Lucida Console",monaco,monospace;
+            font-size: 12px;
+            font-style: normal;
+            color: #000000;
+        }        
+        img.preview {
+            margin: 2px;
+            padding: 4px;
+            border: 1px solid #A0A0A0;
+            width: 128px;
+            height: 128px;
+        }
+        </style>
+    </head>
+    <body>
+        <h2>Wave SDK POC</h2>
+        <button onclick="login()">Login</button>
+        <button onclick="logout()">Logout</button>
+        <br/>
+        <button onclick="getApps()">Get Apps</button>
+        <button onclick="getDashboards()">Get Dashboards</button>
+        <button onclick="getLenses()">Get Lenses</button>
+        <button onclick="getDatasets()">Get Datasets</button>
+        <br/>    
+        <button onclick="clearList()">Clear List</button>
+        <button onclick="clearDetails()">Clear Details</button>
+        <button onclick="clearLog()">Clear Log</button>
+        <br/>
+        <div id="left" class="section left">
+            <ul class="list" id="list"></ul>
+        </div>
+        <div id="middle" class="section middle">
+            <div id="json" class="json">
+                <pre><code id="code"></code>
+                </pre>    
+            </div>        
+        </div>
+        <div id="right" class="section right">
+            <img class="preview" id="preview"/>
+            <div id="details"></div>
+        </div>
+        <br/>
+        <ul class="log" id="log"></ul>
+        <script src="/javascripts/force.js"></script>
+        <script src="/javascripts/wavesdk.js"></script>
+        <script>
+
+        function clearList() {
+            document.getElementById('list').innerHTML = '';
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function clearDetails() {
+            document.getElementById('details').innerHTML = '';
+        }
+
+        function log(str) {
+            console.warn('log: ', str);
+            if (str) {
+                var item = document.createElement('li');
+                item.innerHTML = str;
+                document.getElementById('log').appendChild(item);
+            }
+        }
+
+        function login() {
+            if (wave.isAuthenticated()) {
+                console.warn('already authenticated');
+                log('Already authenticated');
+            } else {
+                wave.login(function(res, err) {
+                    log(err);
+                });
+            }
+        }
+
+        function logout() {
+            wave.logout();
+            clear();
+        }
+
+        function addRow(label, items) {
+            var tbody = document.getElementById('tbody');
+            var row = document.createElement('tr');
+            tbody.appendChild(row);
+            var cell = null;
+            cell = document.createElement('td');
+            cell.innerHTML = label;
+            row.appendChild(cell);
+            for (var i = 0; i < items.length; i++) {
+                cell = document.createElement('td');
+                cell.innerHTML = items[i].label;
+                row.appendChild(cell);
+            }
+        }
+
+        function addList(label, items) {
+            var container = document.getElementById("details");
+            var list = document.createElement('ul');
+            list.classList.add('list');
+            var item = null;
+            item = document.createElement('li');
+            var title = document.createElement('h3');
+            title.innerHTML = label;
+            item.appendChild(title);
+            list.appendChild(item);
+            for (var i = 0; i < items.length; i++) {
+                item = document.createElement('li');
+                item.innerHTML = items[i].label;
+                list.appendChild(item);
+            }
+            container.appendChild(list);
+        }
+
+        function formatJson(json) {        
+            var formattedJson = null;
+            if (typeof json === 'object') {
+                formattedJson = JSON.stringify(json, undefined, 2);
+            } else {
+                formattedJson = JSON.stringify(JSON.parse(json), undefined, 2);
+            }
+            return formattedJson;
+        }
+
+        function showDataset(res) {
+            clearDetails();
+            var dataset = new wave.Dataset();
+            dataset.init(res, function() {
+                var preview = dataset.getPreview();
+                document.getElementById('preview').src = preview;
+                myDataset = dataset;
+                console.warn('Use the myDataset variable in the console to access the current selection: ', res);
+                dataset.getVersions(function(res, err) {
+                    dataset.getVersion(res[0].id, function(res, err) {
+                        console.warn('version: ', res);
+                        version = res;
+                        console.warn('Use the version variable in the console to access the current selection: ', res);
+
+                        var json = formatJson(res);
+                        document.getElementById("code").innerText = json;
+
+                        dataset.getDimensions(function(res, err) {
+                            if (res) {
+                                addList('Dimensions', res);
+                            }
+                        });
+                        dataset.getMeasures(function(res, err) {
+                            if (res) {
+                                addList('Measures', res);
+                            }
+                        });
+                        dataset.getDates(function(res, err) {
+                            if (res) {
+                                addList('Dates', res);
+                            }
+                        });
+                    });
+                });
+            });
+        }
+
+        function showApp(res) {
+            clearDetails();
+            var app = new wave.App();
+            app.init(res, function() {
+                var preview = app.getPreview();
+                document.getElementById('preview').src = preview;
+                myApp = app;
+                console.warn('Use the myApp variable in the console to access the current selection: ', res);
+            });
+        }
+
+        function showDashboard(res) {
+            clearDetails();
+            var dashboard = new wave.Dashboard();
+            dashboard.init(res, function() {
+                var preview = dashboard.getPreview();
+                document.getElementById('preview').src = preview;
+                myDashboard = dashboard;
+                console.warn('Use the myDashboard variable in the console to access the current selection: ', res);
+            });
+        }
+
+        function showLens(res) {
+            clearDetails();
+            var lens = new wave.Lens();
+            lens.init(res, function() {
+                var preview = lens.getPreview();
+                document.getElementById('preview').src = preview;
+                myLens = lens;
+                console.warn('Use the myLens variable in the console to access the current selection: ', res);
+            });
+        }
+
+        function showDetails(type, res) {
+            var json = formatJson(res);
+            document.getElementById("code").innerText = json;
+            if (type === 'app') {
+                showApp(res);
+                myapp = res;
+            } else if (type === 'dataset') {
+                showDataset(res);
+                mydataset = res;
+            } else if (type === 'dashboard') {
+                showDashboard(res);
+                mydashboard = res;
+            } else if (type === 'lens') {
+                showLens(res);
+                mylens = res;
+            }
+            console.warn('Use the my' + type + ' variable in the console to access the current selection: ', res);
+        }
+
+        function selectAsset(evt) {
+            var func = evt.target.dataset.assetType;
+            func = 'get' + func.substring(0,1).toUpperCase() + func.substring(1);
+            wave[func]({id: evt.target.dataset.assetId}, function(res, err) {
+                showDetails(evt.target.dataset.assetType, res);
+            });
+
+        }
+
+        singularNameMap = {
+            'apps': 'app',
+            'dashboards': 'dashboard',
+            'datasets': 'dataset',
+            'lenses': 'lens'
+        };
+
+        pluralNameMap = {
+            'app': 'apps',
+            'dashboard': 'dashboards',
+            'dataset': 'datasets',
+            'lens': 'lenses'
+        };
+
+        function displayResults(type, res, err) {
+            if (err) {
+                log(err);
+            } else if (res) {            
+                //log("getDashboards returned: " + res);
+                clearList();
+                var list = document.getElementById('list');
+                var item = null;
+                var stype = singularNameMap[type];
+                for (var i = 0; i < res.length; i++) {
+                    asset = res[i];
+                    item = document.createElement("li");
+                    item.innerHTML = asset.label;
+                    item.dataset.assetType = stype;
+                    item.dataset.assetId = asset.id;
+                    item.onclick = selectAsset;
+                    list.appendChild(item);
+                }
+            }
+        }
+
+        function getApps() {
+            wave.getApps(null, function(res, err) { displayResults('apps', res, err); });
+        }
+
+        function getDashboards() {
+            wave.getDashboards(null, function(res, err) { displayResults('dashboards', res, err); });
+        }
+
+        function getLenses() {
+            wave.getLenses(null, function(res, err) { displayResults('lenses', res, err); });
+        }
+
+        function getDatasets() {
+            wave.getDatasets(null, function(res, err) { displayResults('datasets', res, err); });
+        }
+
+        // Set to older API for testing
+        var config = {
+            apiVersion: 'v33.0',
+            appId: '3MVG9SemV5D80oBelr7Nm4Bdjw6BnmUh4vwUjXSbk9voHgz5V2izIejkkhpUWVWYJUobhfiwGjY6.4E8WgYUc',
+            useProxy: true
+        };
+
+        wave.init(config);
+
+        </script>
+    </body>
+</html>

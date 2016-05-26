@@ -1,0 +1,29 @@
+doctype html
+html
+	head
+		link(href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet")
+	title!= title
+	script(src="./javascripts/force.oauth.js")
+	script(src="./javascripts/app.js")
+	script(src="https://gs0.salesforce.com/lightning/lightning.out.js")
+	body
+
+		section(class='container')
+				h1 Welcome to your Node application on Heroku - Now with Lightning!
+
+			div(class="row")
+				section(class='col-xs-12 col-sm-6 col-md-6')
+					section
+						h2 Salesforce Lightning Out
+						div
+							button(id="forceLogin" onclick="forceLogin('gs0_df15')") Login to df15 on GS0
+						div
+							button(id="createChatterFeed" onclick="createChatterFeed('news')") Create Feed - df15 on GS0
+						div
+							button(id="createTicTacToe" onclick="createTicTacToe()") Create Tic-Tac-Toe - df15 on GS0
+			div(class="row")
+				section(class='col-xs-12 col-sm-6 col-md-6')
+					div(id="chatterFeed")
+				section(class='col-xs-12 col-sm-6 col-md-6')
+					div(id="ticTacToe")
+
