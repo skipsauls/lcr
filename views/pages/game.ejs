@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>LCR</title>
-    <!--
-    <link rel="stylesheet" type="text/css" href="/stylesheets/bootstrap.min.css" />
-    -->
+    <title>Game</title>
     <link rel="stylesheet" type="text/css" href="/stylesheets/dialog-polyfill.css" />
     <link rel="stylesheet" type="text/css" href="/stylesheets/lcr.css" />
   </head>
   <body>
     <div style="width: 100%; display: inline-block; vertical-align: top; background: #A0A0C0;">
       <div style="float:left">
-        <h2>LCR</h2>
+        <h2>Game</h2>
       </div>
       <div style="float: right">
         <div style="float: left;">
@@ -82,8 +79,12 @@
         <label>Game Players</label>
         <ul id="game_players" class="list"></ul>
       </div>
+      <div class="tab">
+        <label>Game Boards</label>
+        <div id="game_boards"></div>
+      </div>
     </div>
-    <hr/>
+
 
     <dialog id="dialog">
       <div class="titlebar">
@@ -116,8 +117,17 @@
       </div>
 
       <div id="new_game">
-        <label>Name:</label>
-        <input type="text" name="name" placeholder="New Game"/>
+        <div>
+          <label>Tyoe:</label>
+          <select name="type">
+            <option value="rochambeau">Rochambeau</option>
+            <option value="lcr">LCR</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Name:</label>
+          <input type="text" name="name" placeholder="New Game"/>
+        </div>
       </div>
 
       <div id="signup">

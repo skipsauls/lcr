@@ -31,7 +31,14 @@ function request(obj, successHandler, errorHandler) {
         if (xhr.readyState === 4) {
             if (xhr.status > 199 && xhr.status < 300) {
                 if (successHandler) {
-                    successHandler(xhr.responseText ? JSON.parse(xhr.responseText) : undefined);
+                    var resp = undefined;
+                    if (xhr.responseText) {
+                        resp = xhr.responseText || undefined;
+                        try {
+                            resp = JSON.parse(xhr.responseText);
+                        } catch (e) {}
+                    }                    
+                    successHandler(resp);
                 }
             } else {
                 var error = xhr.responseText ? JSON.parse(xhr.responseText) : {message: 'An error has occurred'};
@@ -43,7 +50,11 @@ function request(obj, successHandler, errorHandler) {
     };
 
     xhr.open(method, url, true);
-    xhr.setRequestHeader("Accept", "application/json");
+    if (obj.accept) {
+        xhr.setRequestHeader("Accept", obj.accept);
+    } else {
+        xhr.setRequestHeader("Accept", "application/json");
+    }
     
     if (obj.contentType) {
         xhr.setRequestHeader("Content-Type", obj.contentType);

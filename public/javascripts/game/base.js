@@ -13,10 +13,12 @@ var _selectedGame = null;
 var _playerRoomMap = null;
 var _gameRoomMap = null;
 var _rooms = null;
+var _gameModules = {};
+var _games = {};
 
 
-// Join the lcr namespace
-var socket = io('/lcr');
+// Join the game namespace
+var socket = io('/game');
 
 socket.on('connect', function() {
     console.warn('socket connect');
@@ -45,12 +47,12 @@ socket.on('logout_success', function(data) {
     player = null;
 });
 
-socket.on('lcr_message', function(msg) {
-    console.warn('lcr_message: ', msg);
+socket.on('game_message', function(msg) {
+    console.warn('game_message: ', msg);
 });
 
-socket.on('lcr_error', function(err) {
-    console.warn('lcr_error: ', err);
+socket.on('game_error', function(err) {
+    console.warn('game_error: ', err);
 });
 
 
@@ -80,6 +82,7 @@ function logout() {
     socket.emit('logout', {});
 }
 
+// LCR Specific, older code, update and remove
 function roll() {
     var chips = player.chips;
     var dice = [];
@@ -231,7 +234,7 @@ function showPlayersInSelectedRoom() {
             for (var p in room.players) {
                 plyr = room.players[p];
                 item = document.createElement('li');
-                item.innerHTML = plyr.info.alias;
+                item.innerHTML = plyr.info ? plyr.info.alias || 'N/A' : 'N/A';
                 item.dataset.playerId = plyr.id;
                 list.appendChild(item);
             }
@@ -289,7 +292,7 @@ function selectGame(evt) {
             var list = document.getElementById('game_details');
             list.dataset.gameId = game.id;
 
-            ///socket.emit('get_game', gameId);
+            socket.emit('get_game', gameId);
         } catch (e) {}
     }
 }
@@ -338,6 +341,18 @@ function showGamesInSelectedRoom() {
 socket.on('games', function(gameRoomMap) {
     _gameRoomMap = gameRoomMap;
     showGamesInSelectedRoom();
+});
+
+function signup(evt) {
+    var body = document.getElementById('signup');
+    showDialog('Signup', body, false, function(obj, err) {
+        console.warn('dialog returned: ', obj, err);
+        socket.emit('signup', obj);
+    });
+}
+
+socket.on('signup_success', function(obj) {
+    console.warn('signed up: ', obj);
 });
 
 
@@ -397,8 +412,9 @@ function createGame(evt) {
     showDialog('New Game', body, false, function(obj, err) {
         console.warn('dialog returned: ', obj, err);
         socket.emit('create_game', {
-            roomName: _selectedRoom,
-            gameName: obj.name
+            room: _selectedRoom,
+            name: obj.name,
+            type: obj.type
         });
     });
 }
@@ -423,8 +439,16 @@ socket.on('destroyed_game', function(game) {
 
 });
 
+var _currentGame = null;
+
 socket.on('game', function(game) {
     console.warn('game: ', game);
+    
+    _currentGame = game;
+    _games[game.id] = game;
+
+    loadGameBoard(game);
+
     var list = document.getElementById('game_details');
     list.dataset.gameId !== game.id;
     list.innerHTML = '';
@@ -513,10 +537,86 @@ function restartGame(evt) {
 
 socket.on('game_state_changed', function(obj) {
     console.warn('game_state_changed', obj);
+    if (obj.state === 'ready') {
+        loadGameBoard(obj);
+    }
+});
+
+function registerGameModule(type, obj) {
+    console.warn('/nregisterGameModule: ', type, obj);
+    _gameModules[type] = obj;
+}
+
+socket.on('game_update', function(obj) {
+    console.warn('game_update', obj);
+    try {
+        var game = _games[obj.id];
+        console.warn('game:  ', game);
+        var gameType = game.type.toLowerCase();
+        var module = _gameModules[gameType];
+        console.warn('module: ', module);
+        module['update'](obj);
+    } catch (e) {
+        console.warn('Game update exception: ', e);
+    }
 });
 
 function destroyGame(evt) {
     var list = document.getElementById('game_details');
     var gameId = list.dataset.gameId;
     socket.emit('destroy_game', gameId);
+}
+
+function getGameBoard(obj) {
+    //var boards = document.getElementById('game_boards');
+    var game = _games[obj.id];
+    var board = document.getElementById(game.type + '_' + game.id);
+    return board;
+}
+
+function loadGameBoard(game) {
+    game = game || _currentGame;
+    console.warn('loadGameBoard: ', game);
+
+    var boards = document.getElementById('game_boards');
+    console.warn('boards: ', boards);
+    var board = document.getElementById(game.type + '_' + game.id);
+
+    console.warn('board: ', board);
+
+    if (board) {
+        board.classList.remove('hidden');
+    } else {
+
+        var gameType = game.type.toLowerCase();
+
+        var obj = {
+            accept: 'text/html',
+            path: '/games/' + gameType
+        }
+        request(obj,
+            function(res) {
+                console.warn('success: ', res);
+                board = document.createElement('div');
+                board.classList.add('board');
+                board.innerHTML = res;
+                board.id = game.type + '_' + game.id;
+
+                console.warn('_gameModules[' , gameType, ']: ', _gameModules[gameType]);
+
+                if (!_gameModules[gameType]) {
+                    var script = document.createElement('script');
+                    script.src = '/javascripts/games/' + gameType + '.js';
+                    script.type = 'text/javascript';
+                    document.body.appendChild(script);
+                }
+                boards.appendChild(board);
+            },
+            function(err) {
+                console.warn('error: ', err);
+            }
+        );
+
+    }
+
 }
