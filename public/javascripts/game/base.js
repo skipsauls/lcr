@@ -44,7 +44,7 @@ socket.on('login_success', function(obj) {
 
 socket.on('logout_success', function(data) {
     console.warn('socket logout_success: ', data);
-    player = null;
+    _player = null;
 });
 
 socket.on('game_message', function(msg) {
@@ -293,6 +293,15 @@ function selectGame(evt) {
             list.dataset.gameId = game.id;
 
             socket.emit('get_game', gameId);
+/*
+            loadGameBoard(game, function(board, err) {
+                console.warn('loadGameBoard returned: ', board, err);
+                if (board && !err) {
+                    console.warn('---------------------------------------------> emitting board_ready');
+                    socket.emit('board_ready', game.id);
+                }
+            });
+*/
         } catch (e) {}
     }
 }
@@ -441,13 +450,30 @@ socket.on('destroyed_game', function(game) {
 
 var _currentGame = null;
 
+function emit(type, obj, callback) {
+    console.warn('base emit: ', type, obj);
+
+    socket.emit(type, obj);
+
+}
+
+function foo() {
+    console.warn('\n\nfoo');
+}
+
 socket.on('game', function(game) {
     console.warn('game: ', game);
     
     _currentGame = game;
     _games[game.id] = game;
 
-    loadGameBoard(game);
+    loadGameBoard(game, function(board, err) {
+        console.warn('loadGameBoard returned: ', board, err);
+        if (board && !err) {
+            console.warn('---------------------------------------------> emitting board_ready');
+            socket.emit('board_ready', game.id);
+        }
+    });
 
     var list = document.getElementById('game_details');
     list.dataset.gameId !== game.id;
@@ -538,13 +564,14 @@ function restartGame(evt) {
 socket.on('game_state_changed', function(obj) {
     console.warn('game_state_changed', obj);
     if (obj.state === 'ready') {
-        loadGameBoard(obj);
+        //loadGameBoard(obj);
     }
 });
 
 function registerGameModule(type, obj) {
-    console.warn('/nregisterGameModule: ', type, obj);
+    console.warn('\n\n ---------> registerGameModule: ', type, obj);
     _gameModules[type] = obj;
+    socket.emit('board_ready', _currentGame.id);
 }
 
 socket.on('game_update', function(obj) {
@@ -574,7 +601,7 @@ function getGameBoard(obj) {
     return board;
 }
 
-function loadGameBoard(game) {
+function loadGameBoard(game, callback) {
     game = game || _currentGame;
     console.warn('loadGameBoard: ', game);
 
@@ -586,6 +613,9 @@ function loadGameBoard(game) {
 
     if (board) {
         board.classList.remove('hidden');
+        if (typeof callback === 'function') {
+            callback(null, null);
+        }
     } else {
 
         var gameType = game.type.toLowerCase();
@@ -601,6 +631,8 @@ function loadGameBoard(game) {
                 board.classList.add('board');
                 board.innerHTML = res;
                 board.id = game.type + '_' + game.id;
+                board.dataset.gameId = game.id;
+                board.dataset.gameType = game.type;
 
                 console.warn('_gameModules[' , gameType, ']: ', _gameModules[gameType]);
 
@@ -611,12 +643,24 @@ function loadGameBoard(game) {
                     document.body.appendChild(script);
                 }
                 boards.appendChild(board);
+
+                if (typeof callback === 'function') {
+                    callback(board, null);
+                }
+
             },
             function(err) {
                 console.warn('error: ', err);
+                if (typeof callback === 'function') {
+                    callback(null, err);
+                }
             }
         );
 
     }
 
 }
+
+
+
+

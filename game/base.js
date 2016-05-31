@@ -631,7 +631,7 @@ function createGame(app, socket, req, gameDef, callback) {
 		                owner: player.username,
 		                name: gameDef.name || 'New Game',
 		                room: gameDef.room || 'Lobby',
-		                type: gameDef.type,
+		                type: gameDef.type.toLowerCase(),
 		                players: {},
 		                scope: gameScope[gameDef.scope] || gameScope.public,
 		                state: gameState.ready,
@@ -758,12 +758,12 @@ function leaveGame(socket, req, gameId, callback) {
         }
     } else {
 
+        game.players[player.id] = undefined;
+        delete game.players[player.id];
+
         game.module.update(socket, req, nsp, game, 'leave', function(res, err) {
         	console.warn('^^^^^^^^^^ module.update returned: ', res, err);
         });
-
-        game.players[player.id] = undefined;
-        delete game.players[player.id];
 
         nsp.to(game.room).emit('player_left_game', {roomName: game.room, gameId: game.id, gameName: game.name, player: { id: player.id, alias: player.info.alias}});
 
@@ -790,7 +790,7 @@ function getGame(socket, req, gameId, callback) {
 }
 
 function changeGameState(socket, req, gameId, state, callback) {
-    console.warn('leaveGame: ', gameId);
+    console.warn('changeGameState: ', gameId);
 
     var user = users[req.session.token];
     var player = players[user.playerId];
@@ -829,6 +829,39 @@ function changeGameState(socket, req, gameId, state, callback) {
             pushUpdateGame(null, req, gameId);
         }
     }
+}
+
+function boardReady(socket, req, gameId, callback) {
+    console.warn('\n\nboardReady: ', gameId, req.session.token);
+
+    try {
+
+    var user = users[req.session.token];
+    console.warn('user: ', user);
+    var player = players[user.playerId];
+    console.warn('player: ', player);
+
+    var game = games[gameId];
+    console.warn('game: ', game);
+
+    if (game === null || typeof game === 'undefined') {
+        socket.emit('game_error', {error: 'game_does_not_exist', msg: 'The game does not exist.'});
+    } else {
+
+    	console.warn('calling game.module.update');
+    	console.warn('game.module: ', game.module);
+        game.module.update(socket, req, nsp, game, 'ready', function(res, err) {
+        	console.warn('^^^^^^^^^^ module.update returned: ', res, err);
+        });
+
+        pushUpdateLists(null, req);
+        pushUpdateGame(null, req, gameId);
+    }
+
+    } catch (e) {
+        console.warn('boardReady exception: ', e);
+    }
+
 }
 
 // Allows player to broadcast to all rooms they are currently in
@@ -1092,6 +1125,11 @@ function init(app, server) {
 	        });
 	    });
 
+	    socket.on('board_ready', function(gameId) {
+	        console.warn('?????????????? board_ready: ', gameId);
+	        boardReady(socket, req, gameId);
+	    });
+
 	    socket.on('start_game', function(gameId) {
 	        console.warn('start_game: ', gameId);
 	        changeGameState(socket, req, gameId, 'start');
@@ -1144,5 +1182,7 @@ function init(app, server) {
 }
 
 exports.init = init;
+
+exports.getPlayer = getPlayer;
 
 
