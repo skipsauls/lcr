@@ -40,11 +40,17 @@ socket.on('login_success', function(obj) {
     showRooms();
     showPlayersInSelectedRoom();
     showGamesInSelectedRoom();
+
+    document.querySelector('#displayname').innerHTML = obj.info ? obj.info.alias : obj.username;
+    document.querySelector('#login-menu-item').style.display = 'none';
+    document.querySelector('#user-menu-item').style.display = '';
 });
 
 socket.on('logout_success', function(data) {
     console.warn('socket logout_success: ', data);
     _player = null;
+    document.querySelector('#user-menu-item').style.display = 'none';
+    document.querySelector('#login-menu-item').style.display = '';
 });
 
 socket.on('game_message', function(msg) {
@@ -69,12 +75,14 @@ function testUpdate() {
 }
 
 function login(idx) {
+    console.warn('login: ', idx);
     idx = typeof idx === 'undefined' ? '' : idx;
     var creds = {
         username: document.getElementById('username' + idx).value,
         password: document.getElementById('password' + idx).value
 
     };
+    console.warn('creds: ', creds);
     socket.emit('login', creds);
 }
 
@@ -135,6 +143,38 @@ function enterRoom(roomName) {
     socket.emit('join_room', roomName);
 }
 
+function createThumbnail(type, name, txt) {
+    var thumbnail = document.createElement('div');
+    thumbnail.classList.add('thumbnail');
+    
+    var img = document.createElement('img');
+    img.src = '';
+    img.alt = '';
+    thumbnail.appendChild(img);
+
+    var caption = document.createElement('div');
+    caption.classList.add('caption');
+    var label = document.createElement('div');
+    label.innerHTML = txt;
+    caption.appendChild(label);
+
+    thumbnail.appendChild(caption);
+
+    return thumbnail;
+}
+
+function createAppIcon(type, name, txt) {
+    var item = document.createElement('li');
+    item.classList.add('app-icon');
+    item.classList.add(type);
+    item.classList.add(name);    
+    item.setAttribute('name', name);
+    var label = document.createElement('span');
+    label.innerHTML = txt;
+    item.appendChild(label);
+    return item;
+}
+
 function showRooms() {
     if (!_rooms) {
         return;
@@ -143,6 +183,7 @@ function showRooms() {
 
         var list = document.getElementById('rooms');
         list.innerHTML = null;
+        var slot = null;
         var item = null;
         var label = null;
         var details = null;
@@ -150,7 +191,9 @@ function showRooms() {
         var totalLength = 40;
         for (var i = 0; i < rooms.length; i++) {
             room = rooms[i];
-            console.warn('room: ', room);
+            label = room.name + ' (' + room.player_count + ' / ' + room.game_count + ')';
+            item = createThumbnail('room', room.name, label);
+/*
             item = document.createElement('li');
             label = document.createElement('span');
             label.innerHTML = room.name;
@@ -161,9 +204,7 @@ function showRooms() {
             details.innerHTML = '(' + room.player_count + ' / ' + room.game_count + ')';
             details.classList.add('details');
             item.appendChild(details);
-
-            //item.innerHTML = room.name + fill + details;
-
+*/
             item.dataset.roomId = room.id;
             item.dataset.roomName = room.name;
 
@@ -193,7 +234,11 @@ function showRooms() {
                 item.classList.add('selected');
             }
 
-            list.appendChild(item);
+            slot = document.createElement('div');
+            slot.classList.add('col-sm-4');
+            slot.classList.add('col-md-3');
+            slot.appendChild(item);
+            list.appendChild(slot);
         }
 
     }
@@ -227,16 +272,28 @@ function showPlayersInSelectedRoom() {
     var item = null;
     var room = null;
     var plyr = null;
+    var slot = null;
     for (var roomName in playerRoomMap) {
         if (roomName === _selectedRoom) {
             //if (_player && _player.roomName === roomName) {
             room = playerRoomMap[roomName];
             for (var p in room.players) {
                 plyr = room.players[p];
-                item = document.createElement('li');
-                item.innerHTML = plyr.info ? plyr.info.alias || 'N/A' : 'N/A';
+
+                label = plyr.info ? plyr.info.alias || 'N/A' : 'N/A';;
+                item = createThumbnail('player', plyr.id, label);
+
+                //item = document.createElement('li');
+                //item.innerHTML = plyr.info ? plyr.info.alias || 'N/A' : 'N/A';
+
                 item.dataset.playerId = plyr.id;
-                list.appendChild(item);
+
+                slot = document.createElement('div');
+                slot.classList.add('col-sm-4');
+                slot.classList.add('col-md-3');
+                slot.appendChild(item);
+
+                list.appendChild(slot);                
             }
         }
     }
@@ -320,6 +377,7 @@ function showGamesInSelectedRoom() {
     var list = document.getElementById('games');
     list.innerHTML = null;
     var item = null;
+    var slot = null;
     var room = null;
     var game = null;
     for (var roomName in gameRoomMap) {
@@ -329,13 +387,28 @@ function showGamesInSelectedRoom() {
             room = gameRoomMap[roomName];
             for (var g in room.games) {
                 game = room.games[g];
+
+                label = game.name;
+                item = createThumbnail('game', game.id, label);
+/*                
                 item = document.createElement('li');
                 item.innerHTML = game.name;
+*/                
                 item.dataset.gameId = game.id;
                 item.dataset.gameRoom = game.room;
                 item.dataset.gameName = game.name;
                 item.onclick = selectGame;
-                list.appendChild(item);
+
+                //list.appendChild(item);
+
+
+                slot = document.createElement('div');
+                slot.classList.add('col-sm-4');
+                slot.classList.add('col-md-3');
+                slot.appendChild(item);
+                
+                list.appendChild(slot);                   
+
 
                 console.warn('game.name: ', game.name, _selectedGame);
                 if (game.name === _selectedGame) {
@@ -588,6 +661,14 @@ socket.on('game_update', function(obj) {
     }
 });
 
+socket.on('init_game', function(obj) {
+    console.warn('\n\n ************************* init_game: ', obj);
+});
+
+socket.on('step', function(obj) {
+    console.warn('step: ', step);
+});
+
 function destroyGame(evt) {
     var list = document.getElementById('game_details');
     var gameId = list.dataset.gameId;
@@ -637,8 +718,15 @@ function loadGameBoard(game, callback) {
                 console.warn('_gameModules[' , gameType, ']: ', _gameModules[gameType]);
 
                 if (!_gameModules[gameType]) {
+
+                    var link = document.createElement('link');
+                    link.relList.add('stylesheet');
+                    link.href = '/games/' + gameType + '/static/stylesheets/' + gameType + '.css';
+                    link.type = 'text/css';
+                    document.head.appendChild(link);
+
                     var script = document.createElement('script');
-                    script.src = '/javascripts/games/' + gameType + '.js';
+                    script.src = '/games/' + gameType + '/static/javascripts/' + gameType + '.js';
                     script.type = 'text/javascript';
                     document.body.appendChild(script);
                 }

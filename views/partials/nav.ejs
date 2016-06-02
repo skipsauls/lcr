@@ -1,41 +1,55 @@
 <nav class="navbar navbar-default navbar-static-top navbar-inverse">
-  <div class="not_container">
+  <div class="container">
     <ul class="nav navbar-nav">
       <li class="active">
-        <a href="/"><span class="glyphicon glyphicon-home"></span> Home</a>
+        <a data-toggle="tab" href="#home_panel"><span class="glyphicon glyphicon-home"></span>&nbsp;The Game System</a>
       </li>
       <li>
-        <a href="http://www.salesforce.com/analytics-cloud/overview/"><span class="glyphicon glyphicon-equalizer"></span> Wave Analytics Overview</a>
-      </li>
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-info-sign"></span> Getting Started Guides <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">          
-            <li><a href="https://developer.salesforce.com/docs/atlas.en-us.bi_dev_guide_rest.meta/bi_dev_guide_rest/">
-              Wave REST API Developer Guide
-              </a>
-            </li>
-            <li><a href="https://developer.salesforce.com/docs/atlas.en-us.200.0.bi_dev_guide_rest.meta/bi_dev_guide_rest/bi_rest_overview.htm">
-              Wave REST API Overview
-              </a>
-            </li>
-          </ul>
+        <a data-toggle="tab" href="#rooms_panel"><span class="glyphicon glyphicon-bullhorn"></span> Rooms</a>
       </li>
       <li>
-        <a href="https://developer.salesforce.com"><span class="glyphicon glyphicon-signal"></span> Wave Dev Center</a>
+        <a data-toggle="tab" href="#games_panel"><span class="glyphicon glyphicon-pawn"></span> Games</a>
+      </li>
+      <li>
+        <a data-toggle="tab" href="#players_panel"><span class="glyphicon glyphicon-user"></span> Players</a>
       </li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
-      <li id="login-menu-item" style="display: none;">
-        <a href="#" onclick="login();">Login</a>
+      <li id="login-menu-item">
+        <a data-toggle="modal" data-target="#loginModal" href="#"">Login</a>        
       </li>
       <li id="user-menu-item" class="dropdown" style="display: none;">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-user"></span>&nbsp;<span id="username"> <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">          
-            <li>
-              <a href="#" onclick="logout();">Log Out</a>
-            </li>
-          </ul>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+          <span class="glyphicon glyphicon-user"></span>&nbsp;<span id="displayname">
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">          
+          <li>
+            <a href="#" onclick="logout();">Log Out</a>
+          </li>
+        </ul>
       </li>
     </ul>
   </div>
 </nav>
+
+<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Login</h4>
+      </div>
+      <div class="modal-body">
+
+          Username: <input id="username" type="text" value="skipsauls@gmail.com"/>
+          Password: <input id="password" type="password" value="test1234"/>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="login();">Login</button>
+      </div>
+    </div>
+  </div>
+</div>

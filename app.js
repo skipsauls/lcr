@@ -15,6 +15,7 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
 var Datauri = require('datauri');
+var colors = require('colors');
 
 try {
     env(__dirname + '/.env');
@@ -26,10 +27,20 @@ var app = express();
 var port = process.env.PORT || 3000;
 var https_port = process.env.HTTPS_PORT || parseInt(port) + 1;
 
+var title = '';
+title += '  ________            ______                        _____            __                \n';
+title += ' /_  __/ /_  ___     / ____/___ _____ ___  ___     / ___/__  _______/ /____  ____ ___  \n';
+title += '  / / / __ \\/ _ \\   / / __/ __ `/ __ `__ \\/ _ \\    \\__ \\/ / / / ___/ __/ _ \\/ __ `__ \\ \n';
+title += ' / / / / / /  __/  / /_/ / /_/ / / / / / /  __/   ___/ / /_/ (__  ) /_/  __/ / / / / / \n';
+title += '/_/ /_/ /_/\\___/   \\____/\\__,_/_/ /_/ /_/\\___/   /____/\\__, /____/\\__/\\___/_/ /_/ /_/  \n';
+title += '                                                      /____/                           \n';
 
-console.log('platform: ', os.platform());
-console.log('arch: ', os.arch());
-console.log('hostname: ', os.hostname());
+console.warn('\n');
+console.warn(colors.red.bold(title));
+console.log('Platform: ', os.platform());
+console.log('Arch: ', os.arch());
+console.log('Hostname: ', os.hostname());
+console.warn('\n');
 
 
 //app.set('view engine', 'jade');
@@ -69,9 +80,9 @@ try {
 }
 
 /* Game modules */
-var game = require('./game/base.js');
+var gameSys = require('./game/base.js');
 
-game.init(app, server);
+gameSys.init(app, server);
 
 /*
 console.warn('11111111111111111');

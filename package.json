@@ -7,9 +7,11 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "async": "^2.0.0-rc.5",
     "base64url": "^1.0.6",
     "body-parser": "^1.15.0",
     "client-oauth2": "^2.2.0",
+    "colors": "^1.1.2",
     "cookie-parser": "^1.4.1",
     "datauri": "^1.0.4",
     "dataurl": "^0.1.0",

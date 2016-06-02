@@ -1,129 +1,49 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <% include ../partials/header.ejs %>
+    <title><%= title %></title>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/stylesheets/game.css" />
     <link rel="stylesheet" type="text/css" href="/stylesheets/bootstrap-treeview.min.css"/>
+    <script src="/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="/javascripts/bootstrap.min.js"></script>
   </head>
 
   <body>
 
     <% include ../partials/nav.ejs %>
 
-
-    <div id="alert" class="alert alert-dismissible" role="alert">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close"/>
-        <span aria-hidden="true">&times;</span>
-      </button>
-      <div id="alert_content"/>
-    </div>    
-
-    <script>
-      function listener(event) {
-        console.warn('listener: ', event);
-      }
-      window.addEventListener("message", listener, false);
-    </script>
-
-    <div class="not_container">
+    <div class="container">
       <div class="row">
-        <div class="col-md-4">
+        <div id="tabs" class="tab-content">
 
-          <ul id="left_tabs" class="nav nav-tabs" data-tabs="left_tabs">
-            <li role="presentation" class="active">
-              <a data-toggle="tab" href="#explore_panel">Explore</a>
-            </li>
-            <li role="presentation">
-              <a data-toggle="tab" href="#tryit_panel">Try It</a>
-            </li>
-          </ul>
-
-          <div id="left-tabs" class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="explore_panel">
-
-              <div id="treepanel" class="panel panel-primary">
-                <div class="panel-heading">
-                  <span>Wave Analytics</span>
-                  <button class="btn btn-primary btn-sm pull-right" onclick="refreshTree();">Refresh</button>
-                </div>
-                <div class="panel-body">
-                    <div id="treeview"></div>
-                </div>
-              </div>
-                
-            </div>
-
-            <div role="tabpanel" class="tab-pane" id="tryit_panel">
-              <div id="tryit">
-                <h4>
-                  <span id="objName" name="objName"></span>&nbsp;
-                  (<span id="varName" name="varName"></span>)
-                </h4>
-                <div class="form-inline">
-                  <label for="api_select">API</label>
-                  <select id="api_select" name="api_select" class="form-control"></select>
-                </div>
-                <label for="params">Parameters</label>
-                <div id="params" name="params"></div>
-                <button class="btn btn-primary btn-block" onclick="execTryit();">Execute</button>
-                <div id="console">
-                  <ul></ul>
-                </div>
-              </div>
-            </div>
+          <div role="tabpanel" class="tab-pane active" id="home_panel">
+          Home
           </div>
+          <div role="tabpanel" class="tab-pane" id="rooms_panel">
+            Rooms
+            <ul class="apps rooms" id="rooms"></ul>
+          </div>
+          <div role="tabpanel" class="tab-pane" id="players_panel">
+            Players
+            <ul class="apps players" id="players"></ul>
+          </div>
+          <div role="tabpanel" class="tab-pane" id="games_panel">
+            Games
+            <ul class="apps games" id="games"></ul>
         </div>
-
-        <div class="col-md-8">
-
-          <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
-            <li role="presentation" class="active">
-              <a data-toggle="tab" href="#json_panel">JSON</a>
-            </li>
-            <li role="presentation">
-              <a data-toggle="tab" href="#details_panel">Details</a>
-            </li>
-            <li role="presentation">
-              <a data-toggle="tab" href="#view_panel">View</a>
-            </li>
-          </ul>
-
-          <div id="tab-content" class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="json_panel">
-              <div id="json" class="json">
-                  <pre><code id="code"></code>
-                  </pre>    
-              </div>        
-            </div>
-            <div role="tabpanel" class="tab-pane" id="details_panel">
-              <img class="preview" id="preview"/>
-              <div id="details"></div>
-            </div>
-            <div role="tabpanel" class="tab-pane" id="view_panel">
-              <div class="viewMsg">No View Available</div>
-              <div id="dashboard"/>
-            </div>
         </div>
-      </div>
       <div class="row">
         <ul class="log" id="log"></ul>
       </div>
     </div>
-      <script src="/javascripts/force.js"></script>
-      <script src="/javascripts/test.js"></script>
-      <script src="/javascripts/bootstrap-treeview.min.js"></script>
-      <script src="/javascripts/app.js"></script>
-      <script>
-        // Set to older API for testing
-        var config = {
-            apiVersion: 'v33.0',
-            appId: '<%= appId %>',
-            useProxy: true
-        };
 
-        console.warn('config: ', config);
-        wave.init(config);
+    <script src="/javascripts/socket.io.js"></script>
+    <script src="/javascripts/dialog-polyfill.js"></script>
 
-        init();
-      </script>
+    <script src="/javascripts/game/util.js"></script>
+    <script src="/javascripts/game/ui.js"></script>
+    <script src="/javascripts/game/base.js"></script>
+
   </body>
 </html>

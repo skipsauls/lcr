@@ -1,0 +1,19 @@
+<div name="container" class="container">
+	<div class="title">Rochambeau!</div>
+	<div>Check: <%= title %></div>
+	<div>Round: <span name="round"></span></div>
+	<div>Step: <span name="step"></span></div>
+	<div>Message: <span name="message"></span></div>
+	<div name="controls" class="controls">
+		<button class="button selected" name="rock" onclick="rochambeau.select(event, 'rock');"></button>	
+		<button class="button" name="paper" onclick="rochambeau.select(event, 'paper');"></button>
+		<button class="button" name="scissors" onclick="rochambeau.select(event, 'scissors');"></button>
+	</div>
+	<div>
+		Action: <span name="action"></span>
+		, State: <span name="state"></span>
+	<div>
+		<label for="players">Players:</label>
+		<ul name="players"></ul>
+	</div>
+</div>

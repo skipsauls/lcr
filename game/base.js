@@ -13,6 +13,10 @@ var MemoryStore = require('session-memory-store')(session);
 
 var ioSession = require('socket.io-session');
 
+var fs = require('fs');
+var path = require('path');
+var async = require('async');
+
 var uuid = require('node-uuid');
 var shortid = require('shortid');
 
@@ -583,7 +587,40 @@ function leaveRoom(socket, req, roomName, callback) {
     }
 }
 
+var getDirs = function(rootDir, cb) { 
+    fs.readdir(rootDir, function(err, files) { 
+        var dirs = []; 
+        for (index = 0; index < files.length; ++index) { 
+            file = files[index]; 
+            if (file[0] !== '.') { 
+                filePath = rootDir + '/' + file; 
+                fs.stat(filePath, function(err, stat) {
+                    if (stat.isDirectory()) { 
+                        dirs.push(this.file); 
+                    } 
+                    if (files.length === (this.index + 1)) { 
+                        return cb(dirs); 
+                    } 
+                }.bind({index: index, file: file})); 
+            }
+        }
+    });
+}
+
 function loadGameModule(app, socket, req, gameDef, callback) {
+
+    var gameModule = _games[gameDef.type.toLowerCase()];
+    if (gameModule) {
+        if (typeof callback === 'function') {
+            callback(gameModule, null);
+        }
+    } else {
+        if (typeof callback === 'function') {
+            callback(null, {error: 'game_load_module_error', msg: 'Error loading game module.'});
+        }        
+    }
+
+    return;
 
 	try {
 		var path = '../games/' + gameDef.type.toLowerCase() + '.js';
@@ -598,7 +635,38 @@ function loadGameModule(app, socket, req, gameDef, callback) {
 			callback(null, {error: 'game_load_module_error', msg: 'Error loading game module.'});
 		}
 	}
+}
 
+_games = {};
+
+var express = require('express');
+
+function loadGameModules(app, callback) {
+    var gamesPath = __dirname + '/../games';
+
+    getDirs(gamesPath, function(dirs) {
+        console.warn('dirs: ', dirs);
+        var gameModule = null;
+        var dirName = null;
+        var path = null;
+        for (var i = 0; i < dirs.length; i++) {
+            dirName = dirs[i];
+            path = gamesPath + '/' + dirName;
+            console.warn('path: ', path);
+            gameModule = require(path);
+            gameModule.init(app, function(details) {
+                console.warn('init returned details: ', details);
+            });
+            app.get('/games/' + dirName, function(req, res) {
+                res.render(gamesPath + '/' + dirName + '/views/index', {title: 'Rochambeau'});
+            });
+
+            app.use('/games/' + dirName + '/static', express.static(gamesPath + '/' + dirName + '/public'));            
+
+            _games[dirName] = gameModule;
+
+        }
+    });
 }
 
 function createGame(app, socket, req, gameDef, callback) {
@@ -834,29 +902,34 @@ function changeGameState(socket, req, gameId, state, callback) {
 function boardReady(socket, req, gameId, callback) {
     console.warn('\n\nboardReady: ', gameId, req.session.token);
 
+    /* Send game details to client, needs work!
+    var game = games[gameId];
+    console.warn('game.details: ', game.module.details);
+    socket.emit('init_game', game.module.details);
+    */
+
     try {
 
-    var user = users[req.session.token];
-    console.warn('user: ', user);
-    var player = players[user.playerId];
-    console.warn('player: ', player);
+        var user = users[req.session.token];
+        console.warn('user: ', user);
+        var player = players[user.playerId];
+        console.warn('player: ', player);
 
-    var game = games[gameId];
-    console.warn('game: ', game);
+        var game = games[gameId];
 
-    if (game === null || typeof game === 'undefined') {
-        socket.emit('game_error', {error: 'game_does_not_exist', msg: 'The game does not exist.'});
-    } else {
+        if (game === null || typeof game === 'undefined') {
+            socket.emit('game_error', {error: 'game_does_not_exist', msg: 'The game does not exist.'});
+        } else {
 
-    	console.warn('calling game.module.update');
-    	console.warn('game.module: ', game.module);
-        game.module.update(socket, req, nsp, game, 'ready', function(res, err) {
-        	console.warn('^^^^^^^^^^ module.update returned: ', res, err);
-        });
+        	console.warn('calling game.module.update');
+        	console.warn('game.module: ', game.module);
+            game.module.update(socket, req, nsp, game, 'ready', function(res, err) {
+            	console.warn('^^^^^^^^^^ module.update returned: ', res, err);
+            });
 
-        pushUpdateLists(null, req);
-        pushUpdateGame(null, req, gameId);
-    }
+            //pushUpdateLists(null, req);
+            //pushUpdateGame(null, req, gameId);
+        }
 
     } catch (e) {
         console.warn('boardReady exception: ', e);
@@ -884,7 +957,6 @@ function init(app, server) {
 
 	var options = {};
 
-
 	var sessionMiddleware = session({
 	    store: new MemoryStore(options),
 	    secret: 'game',
@@ -893,6 +965,15 @@ function init(app, server) {
 	});
 
 	app.use(sessionMiddleware);
+
+    app.get('/', function(req, res) {
+        if (validateToken(req.session.token) === false) {
+            var expiresIn = 1000 * 60 * 60 * 24 * 7; // 7 days
+            req.session.token = generateToken(16, expiresIn);
+        }
+        res.cookie('game', req.session.token);
+        res.render('pages/index', {title: 'Game', appId: process.env.APPID});
+    });
 
 	app.get('/game', function(req, res) {
 	    if (validateToken(req.session.token) === false) {
@@ -912,27 +993,31 @@ function init(app, server) {
 
 	nsp = io.of('/game');
 
+    loadGameModules(app, function(obj, err) {
+
+    });
+
 	nsp.on('connection', function(socket){
 
 	    var req = socket.request;
 	    var session = req.session;
 	    var token = req.session.token;
 
+        /*
 	    console.warn('req.session: ', session);
 	    console.warn('token: ', token);
 	    console.warn('req.session.user: ', session.user);
 	    console.warn('req.session.bar ', session.bar);
 	    console.warn('socket.playerId: ', socket.playerId);
 	    console.warn('socket.playerName: ', socket.playerName);
+        */
 
 	    if (validateToken(req.session.token) === false) {
 	        var expiresIn = 1000 * 60 * 60 * 24 * 7; // 7 days
 	        req.session.token = generateToken(16, expiresIn);
 	        token = req.session.token;
 	    } else {
-	        console.warn('CALLING login');
 	        login(socket, req, null, true, function(ret, err) {
-	            console.warn('>>>>>>>>>>>>>> returned: ', ret, err);
 	            if (err) {
 	                socket.emit('game_error', err);
 	            } else {
@@ -941,7 +1026,6 @@ function init(app, server) {
 	                ret.player.socketId = socket.id;
 	                var user = users[req.session.token];
 	                var player = players[user.playerId];
-	                console.warn('player: ', player);
 	                players[user.playerId].connected = true;
 	                socket.emit(ret.type, ret.player);
 	            }
@@ -949,8 +1033,6 @@ function init(app, server) {
 	        });
 
 	    }
-
-	    //console.log('-----------------> session.token: ' + session.token);
 
 	    socket.emit('test', 'Welcome to the Game!');
 

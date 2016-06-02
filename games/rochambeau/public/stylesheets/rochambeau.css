@@ -1,0 +1,42 @@
+.title {
+	color: red;
+}
+
+.container .controls button {
+	cursor: not-allowed;
+	opacity: 0.65;
+	width: 120px;
+	height: 120px;
+	border: 1px solid #C0C0C0;
+	outline: none;
+	background-color: #F0F0F0;
+	background-size: 120px;
+	background-repeat: no-repeat;
+}
+
+.container .controls button:hover {
+	background-color: #F0F0FF;
+	box-shadow:0 0 20px #C0C0FF;
+}
+
+.container .controls.running button {
+	cursor: pointer;
+	opacity: 1.0;
+}
+
+.container .controls button[name="rock"] {
+	background-image: url(/games/rochambeau/static/images/rock.png);
+}
+
+.container .controls button[name="paper"] {
+	background-image: url(/games/rochambeau/static/images/paper.png);
+}
+
+.container .controls button[name="scissors"] {
+	background-image: url(/games/rochambeau/static/images/scissors.png);
+}
+
+.container .controls button.selected {
+	background-color: #C0FFC0;
+	box-shadow:0 0 20px #A0FFA0;
+}

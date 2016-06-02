@@ -1,10 +1,19 @@
 var gameSys = require('../game/base.js');
-console.warn('gameSys: ', gameSys);
+console.warn('---------------------- gameSys: ', gameSys);
 
 var exports = module.exports = {};
 
 var gameState = {
 
+};
+
+var gameDetails = {
+	name: 'Rochambeau (Rock-Paper-Scissors)',
+	description: 'Rock-paper-scissors is a zero-sum hand game usually played between two people, in which each player simultaneously forms one of three shapes with an outstretched hand. These shapes are "rock" (a simple fist), "paper" (a flat hand), and "scissors" (a fist with the index and middle fingers together forming a V). The game has only three possible outcomes other than a tie: a player who decides to play rock will beat another player who has chosen scissors ("rock crushes scissors") but will lose to one who has played paper ("paper covers rock"); a play of paper will lose to a play of scissors ("scissors cut paper"). If both players choose the same shape, the game is tied and is usually immediately replayed to break the tie. Other names for the game in the English-speaking world include roshambo and other orderings of the three items, sometimes with "rock" being called "stone"',
+	minPlayers: 2,
+	maxPlayers: 2,
+	minRounds: 1,
+	maxRounds: -1
 };
 
 function init(app, gameDef) {
@@ -37,7 +46,6 @@ function compare(choice1, choice2) {
 }
 
 function judge(socket, req, nsp, game) {
-	console.warn('\n\n !!! judge: ', game);
 	var gs = gameState[game.id];
 	var round = gs.rounds[gs.rounds.length - 1];
 	var winner = null;
@@ -83,36 +91,22 @@ function judge(socket, req, nsp, game) {
 
 	console.warn('\nmessage: ', message);
 
-	nsp.to(game.room).emit('game_update', {
-		action: 'results',
-		players: game.players,
-		rolls: round.rolls,
-		id: game.id,
-		name: game.name,
-		state: game.state,
-		round: gs.rounds.length,		
-		winner: winner,
-		stats: gs.players,
-		message: message
-	});
-
+	sendGame(nsp.to(game.room), 'results', game);
 
 	newRound(socket, req, nsp, game);
 }
 
 function play(socket, req, nsp, game, roll) {
 	var player = gameSys.getPlayer(req);
-	console.warn('player: ' + player.info.alias + '(' + player.id + ') selected ' + roll);
 
 	if (game.state !== 'running') {
 		socket.emit('game_error', {error: 'game_not_in_play', msg: 'The game is not in play`.'});
 	} else {
 		var gs = gameState[game.id];
-		console.warn('gs: ', gs);
 		var round = gs.rounds[gs.rounds.length - 1];
 		round.rolls = round.rolls || {};
 		round.rolls[player.id] = roll;
-		round.count++;
+		round.count = Object.keys(round.rolls).length; // ++
 		if (round.count === Object.keys(gs.players).length) {
 			judge(socket, req, nsp, game);
 		}
@@ -120,9 +114,7 @@ function play(socket, req, nsp, game, roll) {
 }
 
 function newRound(socket, req, nsp, game) {
-	console.warn('>>>>> newRound');
 	var gs = gameState[game.id];
-	console.warn('gs: ', gs);
 	gs.rounds.push({
 		rolls: {},
 		count: 0,
@@ -134,27 +126,31 @@ function newRound(socket, req, nsp, game) {
 		rolls = gs.rounds[gs.rounds.length - 2].rolls;
 	}
 
-	nsp.to(game.room).emit('game_update', {
-		action: 'new_round',
+	sendGame(nsp.to(game.room), 'new_round', game);
+}
+
+function sendGame(sender, action, game) {
+
+	var gs = gameState[game.id];
+
+	sender.emit('game_update', {
+		action: action,
 		players: game.players,
-		rolls: 	rolls,
 		id: game.id,
 		name: game.name,
 		state: game.state,
-		round: gs.rounds.length,
-		stats: gs.players
+		rounds: gs ? gs.rounds : null,
+		stats: gs ? gs.players : null
 	});
+
 }
 
 function startGame(socket, req, nsp, game) {
-	console.warn('>>>>> startGame');
 	var gs = gameState[game.id];
-	console.warn('gs: ', gs);
 	newRound(socket, req, nsp, game);
 }
 
 function setupGame(sock, req, nsp, game) {
-	console.warn('>>>>> setupGame');
 	var gs = gameState[game.id];
 	if (!gs) {
 		gs = {
@@ -168,25 +164,27 @@ function setupGame(sock, req, nsp, game) {
 function setupPlayer(socket, req, nsp, game) {
 	var player = gameSys.getPlayer(req);
 	gameState[game.id].players[player.id] = {rounds: 0, wins: 0, losses: 0, ties: 0};
-	console.warn(']]]]]]]]]]]]]]]]] calling socket on play');
+}
+
+function setupListeners(socket, req, nsp, game) {
+	var player = gameSys.getPlayer(req);
 	socket.on('play', function(roll) {
-		console.warn('rochambeau.play: ', roll);
 		play(socket, req, nsp, game, roll);
 	});
 }
 
 function update(socket, req, nsp, game, action, callback) {
-	console.warn('\n\n @@@@@ rochambeau.update: ', game.id, action);
+	console.warn('\n\nrochambeau.update: ', game.id, action);
 
 	var player = gameSys.getPlayer(req);
 
 	if (action === 'create') {
 		setupGame(socket, req, nsp, game);
 	} else if (action === 'join') {
-		setupPlayer(socket, req, nsp, game);		
+		setupPlayer(socket, req, nsp, game);
+		setupListeners(socket, req, nsp, game);	
 	} if (action === 'ready' && game.players[player.id] !== null) {
-		// Need to handle refresh/reconnect!!!!!!!!!!!!!!!!!
-		//setupPlayer(socket, req, nsp, game);
+		setupListeners(socket, req, nsp, game);	
 	} else if (action === 'state') {
 		if (game.state === 'running') {
 			startGame(socket, req, nsp, game);
@@ -196,16 +194,9 @@ function update(socket, req, nsp, game, action, callback) {
 
 	var gs = gameState[game.id];
 
-	nsp.to(game.room).emit('game_update', {
-		action: action,
-		players: game.players,
-		id: game.id,
-		name: game.name,
-		state: game.state,
-		round: gs && gs.rounds ? gs.rounds.length : 0,
-		stats: gs ? gs.players : null
-	});
+	sendGame(nsp.to(game.room), action, game);
 }
 
 exports.init = init;
 exports.update = update;
+
